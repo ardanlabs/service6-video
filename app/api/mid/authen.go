@@ -7,14 +7,29 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ardanlabs/service/app/api/authclient"
 	"github.com/ardanlabs/service/app/api/errs"
 	"github.com/ardanlabs/service/business/api/auth"
+	"github.com/ardanlabs/service/foundation/logger"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
 
-// Authorization validates a JWT from the `Authorization` header.
-func Authorization(ctx context.Context, auth *auth.Auth, authorization string, handler Handler) error {
+// AuthenticateService validates authentication via the auth service.
+func AuthenticateService(ctx context.Context, log *logger.Logger, client *authclient.Client, authorization string, handler Handler) error {
+	resp, err := client.Authenticate(ctx, authorization)
+	if err != nil {
+		return errs.New(errs.Unauthenticated, err)
+	}
+
+	ctx = setUserID(ctx, resp.UserID)
+	ctx = setClaims(ctx, resp.Claims)
+
+	return handler(ctx)
+}
+
+// AuthenticateLocal processes the authentication requirements locally.
+func AuthenticateLocal(ctx context.Context, auth *auth.Auth, authorization string, handler Handler) error {
 	var err error
 	parts := strings.Split(authorization, " ")
 
