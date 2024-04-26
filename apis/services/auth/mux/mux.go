@@ -11,13 +11,14 @@ import (
 	"github.com/ardanlabs/service/business/api/auth"
 	"github.com/ardanlabs/service/foundation/logger"
 	"github.com/ardanlabs/service/foundation/web"
+	"github.com/jmoiron/sqlx"
 )
 
 // WebAPI constructs a http.Handler with all application routes bound.
-func WebAPI(log *logger.Logger, auth *auth.Auth, shutdown chan os.Signal) *web.App {
+func WebAPI(build string, log *logger.Logger, db *sqlx.DB, auth *auth.Auth, shutdown chan os.Signal) *web.App {
 	app := web.NewApp(shutdown, mid.Logger(log), mid.Errors(log), mid.Metrics(), mid.Panics())
 
-	checkapi.Routes(app, auth)
+	checkapi.Routes(build, app, log, db)
 	authapi.Routes(app, auth)
 
 	return app
