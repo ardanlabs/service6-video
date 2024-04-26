@@ -174,6 +174,12 @@ statsviz:
 	open -a "Google Chrome" http://localhost:3010/debug/statsviz
 
 # ==============================================================================
+# Administration
+
+pgcli:
+	pgcli postgresql://postgres:postgres@localhost
+
+# ==============================================================================
 # Modules support
 
 tidy:
