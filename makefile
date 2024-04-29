@@ -48,6 +48,10 @@ token:
 	curl -il \
 	--user "admin@example.com:gophers" http://localhost:6000/auth/token/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1
 
+users:
+	curl -il \
+	-H "Authorization: Bearer ${TOKEN}" "http://localhost:3000/users?page=1&rows=2"
+
 curl-auth2:
 	curl -il \
 	-H "Authorization: Bearer ${TOKEN}" "http://localhost:6000/auth/authenticate"
