@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/go-json-experiment/json"
@@ -18,14 +19,14 @@ func Respond(ctx context.Context, w http.ResponseWriter, data any, statusCode in
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("web.respond: marshal: %w", err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
 	if _, err := w.Write(jsonData); err != nil {
-		return err
+		return fmt.Errorf("web.respond: write: %w", err)
 	}
 
 	return nil
