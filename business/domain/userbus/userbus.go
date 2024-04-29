@@ -34,22 +34,22 @@ type Storer interface {
 	QueryByEmail(ctx context.Context, email mail.Address) (User, error)
 }
 
-// Domain manages the set of APIs for user access.
-type Domain struct {
+// Business manages the set of APIs for user access.
+type Business struct {
 	log    *logger.Logger
 	storer Storer
 }
 
-// NewDomain constructs a user core API for use.
-func NewDomain(log *logger.Logger, storer Storer) *Domain {
-	return &Domain{
+// NewBusiness constructs a user business API for use.
+func NewBusiness(log *logger.Logger, storer Storer) *Business {
+	return &Business{
 		log:    log,
 		storer: storer,
 	}
 }
 
 // Create adds a new user to the system.
-func (d *Domain) Create(ctx context.Context, nu NewUser) (User, error) {
+func (b *Business) Create(ctx context.Context, nu NewUser) (User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(nu.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return User{}, fmt.Errorf("generatefrompassword: %w", err)
@@ -69,7 +69,7 @@ func (d *Domain) Create(ctx context.Context, nu NewUser) (User, error) {
 		DateUpdated:  now,
 	}
 
-	if err := d.storer.Create(ctx, usr); err != nil {
+	if err := b.storer.Create(ctx, usr); err != nil {
 		return User{}, fmt.Errorf("create: %w", err)
 	}
 
@@ -77,7 +77,7 @@ func (d *Domain) Create(ctx context.Context, nu NewUser) (User, error) {
 }
 
 // Update modifies information about a user.
-func (d *Domain) Update(ctx context.Context, usr User, uu UpdateUser) (User, error) {
+func (b *Business) Update(ctx context.Context, usr User, uu UpdateUser) (User, error) {
 	if uu.Name != nil {
 		usr.Name = *uu.Name
 	}
@@ -107,7 +107,7 @@ func (d *Domain) Update(ctx context.Context, usr User, uu UpdateUser) (User, err
 	}
 	usr.DateUpdated = time.Now()
 
-	if err := d.storer.Update(ctx, usr); err != nil {
+	if err := b.storer.Update(ctx, usr); err != nil {
 		return User{}, fmt.Errorf("update: %w", err)
 	}
 
@@ -115,8 +115,8 @@ func (d *Domain) Update(ctx context.Context, usr User, uu UpdateUser) (User, err
 }
 
 // Delete removes the specified user.
-func (d *Domain) Delete(ctx context.Context, usr User) error {
-	if err := d.storer.Delete(ctx, usr); err != nil {
+func (b *Business) Delete(ctx context.Context, usr User) error {
+	if err := b.storer.Delete(ctx, usr); err != nil {
 		return fmt.Errorf("delete: %w", err)
 	}
 
@@ -124,12 +124,12 @@ func (d *Domain) Delete(ctx context.Context, usr User) error {
 }
 
 // Query retrieves a list of existing users.
-func (d *Domain) Query(ctx context.Context, filter QueryFilter, orderBy order.By, pageNumber int, rowsPerPage int) ([]User, error) {
+func (b *Business) Query(ctx context.Context, filter QueryFilter, orderBy order.By, pageNumber int, rowsPerPage int) ([]User, error) {
 	if err := filter.Validate(); err != nil {
 		return nil, err
 	}
 
-	users, err := d.storer.Query(ctx, filter, orderBy, pageNumber, rowsPerPage)
+	users, err := b.storer.Query(ctx, filter, orderBy, pageNumber, rowsPerPage)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
@@ -138,17 +138,17 @@ func (d *Domain) Query(ctx context.Context, filter QueryFilter, orderBy order.By
 }
 
 // Count returns the total number of users.
-func (d *Domain) Count(ctx context.Context, filter QueryFilter) (int, error) {
+func (b *Business) Count(ctx context.Context, filter QueryFilter) (int, error) {
 	if err := filter.Validate(); err != nil {
 		return 0, err
 	}
 
-	return d.storer.Count(ctx, filter)
+	return b.storer.Count(ctx, filter)
 }
 
-// QueryByID finds the user by the specified ID.
-func (d *Domain) QueryByID(ctx context.Context, userID uuid.UUID) (User, error) {
-	user, err := d.storer.QueryByID(ctx, userID)
+// QueryByID finds the user by the specified Ib.
+func (b *Business) QueryByID(ctx context.Context, userID uuid.UUID) (User, error) {
+	user, err := b.storer.QueryByID(ctx, userID)
 	if err != nil {
 		return User{}, fmt.Errorf("query: userID[%s]: %w", userID, err)
 	}
@@ -157,8 +157,8 @@ func (d *Domain) QueryByID(ctx context.Context, userID uuid.UUID) (User, error) 
 }
 
 // QueryByIDs finds the users by a specified User IDs.
-func (d *Domain) QueryByIDs(ctx context.Context, userIDs []uuid.UUID) ([]User, error) {
-	user, err := d.storer.QueryByIDs(ctx, userIDs)
+func (b *Business) QueryByIDs(ctx context.Context, userIDs []uuid.UUID) ([]User, error) {
+	user, err := b.storer.QueryByIDs(ctx, userIDs)
 	if err != nil {
 		return nil, fmt.Errorf("query: userIDs[%s]: %w", userIDs, err)
 	}
@@ -167,8 +167,8 @@ func (d *Domain) QueryByIDs(ctx context.Context, userIDs []uuid.UUID) ([]User, e
 }
 
 // QueryByEmail finds the user by a specified user email.
-func (d *Domain) QueryByEmail(ctx context.Context, email mail.Address) (User, error) {
-	user, err := d.storer.QueryByEmail(ctx, email)
+func (b *Business) QueryByEmail(ctx context.Context, email mail.Address) (User, error) {
+	user, err := b.storer.QueryByEmail(ctx, email)
 	if err != nil {
 		return User{}, fmt.Errorf("query: email[%s]: %w", email, err)
 	}
@@ -176,11 +176,11 @@ func (d *Domain) QueryByEmail(ctx context.Context, email mail.Address) (User, er
 	return user, nil
 }
 
-// Authenticate finds a user by their email and verifies their password. On
+// Authenticate finds a user by their email and verifies their passworb. On
 // success it returns a Claims User representing this user. The claims can be
 // used to generate a token for future authentication.
-func (d *Domain) Authenticate(ctx context.Context, email mail.Address, password string) (User, error) {
-	usr, err := d.QueryByEmail(ctx, email)
+func (b *Business) Authenticate(ctx context.Context, email mail.Address, password string) (User, error) {
+	usr, err := b.QueryByEmail(ctx, email)
 	if err != nil {
 		return User{}, fmt.Errorf("query: email[%s]: %w", email, err)
 	}

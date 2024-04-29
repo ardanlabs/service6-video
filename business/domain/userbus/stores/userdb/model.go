@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type dbUser struct {
+type user struct {
 	ID           uuid.UUID      `db:"user_id"`
 	Name         string         `db:"name"`
 	Email        string         `db:"email"`
